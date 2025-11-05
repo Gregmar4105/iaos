@@ -6,6 +6,8 @@ import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { ArrowRightIcon, CalendarIcon, PlaneIcon, UserIcon } from 'lucide-react';
+import { ChevronRightIcon, InfoIcon, ShieldAlertIcon } from 'lucide-react';
+import { GiftIcon, ZapIcon } from 'lucide-react';
 
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -27,6 +29,35 @@ export default function Welcome() {
     { name: "Flight status", current: false },
 ];
 
+    const destinations = [
+        {
+            name: "Cebu, Philippines",
+            price: "Starting at $120",
+            image: "https://i0.wp.com/wanderlustyle.com/wp-content/uploads/2017/12/boy-swims-w-whale-shark.jpg?fit=1600%2C970&ssl=1", // Placeholder URL
+            description: "Experience world-class beaches and vibrant city life.",
+        },
+        {
+            name: "Tokyo, Japan",
+            price: "Starting at $450",
+            image: "https://res.cloudinary.com/aenetworks/image/upload/c_fill,ar_2,w_1920,h_960,g_auto/dpr_auto/f_auto/q_auto:eco/v1/gettyimages-1390815938?_a=BAVAZGID0", // Placeholder URL
+            description: "Explore the fusion of ancient tradition and modern innovation.",
+        },
+        {
+            name: "New York, USA",
+            price: "Starting at $780",
+            image: "https://fullsuitcase.com/wp-content/uploads/2022/05/One-day-in-New-York-USA-NYC-day-trip-itinerary.jpg", // Placeholder URL
+            description: "The city that never sleeps offers endless excitement.",
+        },
+        {
+            name: "Paris, France",
+            price: "Starting at $620",
+            image: "https://static.independent.co.uk/2025/04/25/13/42/iStock-1498516775.jpg?quality=75&width=1368&crop=3%3A2%2Csmart&auto=webp", // Placeholder URL
+            description: "The romance capital, featuring iconic landmarks and cuisine.",
+        },
+    ];
+
+    const AnimateOnScroll = ({ children, className, style }) => <div className={className} style={style}>{children}</div>;
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
@@ -36,7 +67,7 @@ export default function Welcome() {
                 
                 <div className="relative">
                     <img src="https://www.arup.com/globalassets/images/services/planning/airport-planning/plane-at-an-airport-terminal-airport-planning-hero.jpg?format=webp&width=1840&quality=80" alt="Airline Background" />
-                    <section className="relative -mt-70 z-10 w-full max-w-7xl mx-auto px-4 md:px-6">
+                    <section className="relative -mt-60 z-10 w-full max-w-7xl mx-auto px-4 md:px-6">
                         {/* Tab Navigation */}
                         <div className="flex bg-white/90 backdrop-blur-sm rounded-t-xl shadow-lg overflow-hidden">
                             {tabs.map((tab) => (
@@ -166,6 +197,113 @@ export default function Welcome() {
                             </div>
                         </div>
                     </section>
+
+                    <section id="featured-destinations" className="w-full py-16 md:py-24 bg-gray-50 dark:bg-gray-900">
+            <div className="container mx-auto max-w-7xl px-4 md:px-6">
+                <AnimateOnScroll className="mb-12 text-center">
+                    <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl text-gray-900 dark:text-white">
+                        Top Travel Deals
+                    </h2>
+                    <p className="mt-3 max-w-xl mx-auto text-gray-600 dark:text-gray-400">
+                        Discover the best flight deals to our most popular and exotic destinations.
+                    </p>
+                </AnimateOnScroll>
+                
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                    {destinations.map((dest, i) => (
+                        <AnimateOnScroll key={dest.name} style={{ transitionDelay: `${i * 100}ms` }}>
+                            <a href="#" className="group relative block h-72 overflow-hidden rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
+                                <img
+                                    alt={dest.name}
+                                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                    src={dest.image}
+                                    loading="lazy"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
+                                <div className="absolute bottom-0 left-0 p-5 text-white">
+                                    <h3 className="text-2xl font-bold leading-tight">{dest.name}</h3>
+                                    <p className="text-sm font-semibold mt-1 text-yellow-300">{dest.price}</p>
+                                    <p className="text-xs mt-1 opacity-90">{dest.description}</p>
+                                </div>
+                                <div className="absolute top-3 right-3 bg-orange-400 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                                    Deal
+                                </div>
+                            </a>
+                        </AnimateOnScroll>
+                    ))}
+                </div>
+            </div>
+        </section>
+
+        <section id="travel-alerts" className="w-full max-w-7xl mx-auto px-4 md:px-6 mb-8">
+            <div className="bg-white border border-gray-200 rounded-xl shadow-lg p-4 md:p-6 space-y-4">
+                {/* Section Header */}
+                <h3 className="text-xl font-bold text-gray-800 flex items-center">
+                    <InfoIcon className="w-6 h-6 text-blue-600 mr-2" />
+                    Important Information & Travel Advisories
+                </h3>
+
+                {/* List of Alerts/Information Blocks */}
+                <div className="space-y-3">
+                    {/* Advisory 1: Flight Changes */}
+                    <div className="flex items-center justify-between p-3 bg-red-50 border-l-4 border-red-500 rounded-md transition-shadow hover:shadow-md cursor-pointer">
+                        <div className="flex items-center space-x-3">
+                            <ShieldAlertIcon className="w-5 h-5 text-red-600" />
+                            <p className="text-sm font-medium text-gray-700">
+                                <span className="font-bold text-red-600">COVID-19 Updates:</span> Review the latest entry requirements for all international travel.
+                            </p>
+                        </div>
+                        <ChevronRightIcon className="w-5 h-5 text-red-500" />
+                    </div>
+
+                    {/* Advisory 2: Baggage Policy */}
+                    <div className="flex items-center justify-between p-3 bg-blue-50 border-l-4 border-blue-500 rounded-md transition-shadow hover:shadow-md cursor-pointer">
+                        <div className="flex items-center space-x-3">
+                            <InfoIcon className="w-5 h-5 text-blue-600" />
+                            <p className="text-sm font-medium text-gray-700">
+                                <span className="font-bold">Baggage Policy:</span> New checked luggage size and weight restrictions effective November 10, 2025.
+                            </p>
+                        </div>
+                        <ChevronRightIcon className="w-5 h-5 text-blue-500" />
+                    </div>
+                </div>
+
+                <div className="text-right pt-2">
+                    <a href="#" className="text-sm font-semibold text-blue-600 hover:text-blue-800 flex items-center justify-end">
+                        View all advisories
+                        <ChevronRightIcon className="w-4 h-4 ml-1" />
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <section id="loyalty-cta" className="w-full py-12 md:py-16 bg-orange-400 dark:bg-orange-800">
+            <div className="container mx-auto max-w-7xl px-4 md:px-6 text-center">
+                <div className="flex flex-col md:flex-row items-center justify-between bg-white/10 p-8 rounded-xl backdrop-blur-sm">
+                    {/* Left side: Text and icons */}
+                    <div className="md:text-left text-white mb-6 md:mb-0">
+                        <div className="flex items-center justify-center md:justify-start space-x-3 mb-2">
+                            <ZapIcon className="w-8 h-8 text-yellow-300" />
+                            <h2 className="text-xl font-extrabold tracking-tight sm:text-4xl">
+                                Fly Smarter. Earn Rewards.
+                            </h2>
+                        </div>
+                        <p className="mt-2 text-md text-blue-100 max-w-2xl">
+                            Join our loyalty program today and start earning miles on every flight! Redeem for upgrades, free tickets, and more.
+                        </p>
+                    </div>
+                    
+                    {/* Right side: Button */}
+                    <a 
+                        href="#" 
+                        className="flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-full text-orange-800 bg-yellow-300 hover:bg-yellow-400 md:text-lg transition-colors shadow-lg hover:shadow-xl"
+                    >
+                        <GiftIcon className="w-5 h-5 mr-2" />
+                        Sign Up for Free
+                    </a>
+                </div>
+            </div>
+        </section>
                 </div>
             </div>
         </AppLayout>
