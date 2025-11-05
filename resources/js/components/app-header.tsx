@@ -377,7 +377,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                     asChild // Use 'asChild' to render the Link as the Button's child
                                     variant="default"
                                     size="sm"
-                                    className="px-3 py-1 text-sm font-medium" 
+                                    className="px-3 py-1 text-sm font-medium bg-orange-400 hover:bg-orange-700" 
                                 >
                                     <Link
                                         href={login()}
