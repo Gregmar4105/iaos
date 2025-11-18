@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'n8n' => [
+        'send_flight_to_pms' => env('N8N_SEND_FLIGHT_TO_PMS', 'https://n8n.larable.dev/webhook/send-flight-to-pms'),
+        'get_bookings' => env('N8N_GET_BOOKINGS', 'https://n8n.larable.dev/webhook/flights'),
+    ],
+
 ];

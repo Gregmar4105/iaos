@@ -32,19 +32,19 @@ const Book: NavItem[] = [
   },
   {
     title: "Flight Schedules",
-    href: "/flight-schedules",
+    href: "/flight-schedule",
     description:
       "View flight schedules by FIS",
   },
   {
     title: "Arrival",
-    href: "/arrival",
+    href: "/arrivals",
     description:
       "View flight arrival information by FIS",
   },
   {
     title: "Departure",
-    href: "/departure",
+    href: "/departures",
     description:
       "View flight departure information by FIS",
   },
