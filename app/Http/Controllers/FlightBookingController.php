@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Http\JsonResponse;
+use Inertia\Inertia;
 
 class FlightBookingController extends Controller
 {
@@ -44,7 +45,7 @@ class FlightBookingController extends Controller
             ],
         ];
 
-        $webhookUrl = config('services.n8n.send_flight_to_pms', 'https://n8n.larable.dev/webhook-test/send-flight-to-pms');
+        $webhookUrl = config('services.n8n.send_flight_to_pms', 'https://n8n.larable.dev/webhook/send-flight-to-pms');
 
         try {
             $response = Http::post($webhookUrl, $payload);

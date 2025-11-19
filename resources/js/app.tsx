@@ -1,3 +1,4 @@
+
 import '../css/app.css';
 
 import { createInertiaApp } from '@inertiajs/react';
@@ -9,11 +10,22 @@ const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
-    resolve: (name) =>
-        resolvePageComponent(
-            `./pages/${name}.tsx`,
+    // FIX: Modified the resolve function to handle the case-sensitive path lookup.
+    // Laravel requests the component as 'SearchFlights' (PascalCase), but the file 
+    // on disk is named 'search-flights.tsx' (kebab-case).
+    resolve: (name) => {
+        let fileName = name;
+        
+        // Explicitly map 'SearchFlights' to its actual file name 'search-flights'
+        if (name === 'SearchFlights') {
+            fileName = 'search-flights';
+        }
+        
+        return resolvePageComponent(
+            `./pages/${fileName}.tsx`,
             import.meta.glob('./pages/**/*.tsx'),
-        ),
+        );
+    },
     setup({ el, App, props }) {
         const root = createRoot(el);
 
