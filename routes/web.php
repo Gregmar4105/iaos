@@ -2,13 +2,11 @@
 
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-Use App\Http\Controllers\UserController;
-use App\Models\User;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Http\Request;
 use App\Http\Controllers\FlightBookingController;
 use App\Http\Controllers\FlightScheduleController;
 use App\Http\Controllers\BookingsController;
+use App\Http\Controllers\OperationsPageController;
 
 Route::get('/', function () {
     $n8n_webhook_url = env('N8N_GET_NOTAMS');
@@ -30,6 +28,13 @@ Route::get('/', function () {
         'isNotamsLoading' => false,
     ]);
 })->name('home');
+
+Route::get('/baggage', [OperationsPageController::class, 'baggage'])->name('baggage.index');
+Route::get('/checked-in', [OperationsPageController::class, 'checkedIn'])->name('checked-in.index');
+Route::get('/notams', [OperationsPageController::class, 'notams'])->name('notams.index');
+Route::get('/safety-measures', [OperationsPageController::class, 'safetyMeasures'])->name('safety-measures.index');
+Route::get('/weather-updates', [OperationsPageController::class, 'weatherUpdates'])->name('weather-updates.index');
+Route::get('/api/weather', [OperationsPageController::class, 'weatherLookup'])->name('weather.lookup');
 
 Route::get('/arrivals', [FlightScheduleController::class, 'arrivals'])->name('flights.arrivals');
 Route::get('/departures', [FlightScheduleController::class, 'departures'])->name('flights.departures');
@@ -94,14 +99,6 @@ Route::middleware(['auth', 'verified', 'prevent-back'])->group(function () {
     Route::get('dashboard', function () {
         return Inertia::render('dashboard');
     })->name('dashboard');   
-
-    // **This is the correct syntax for passing props to Inertia::render**
-    Route::get('/checked-in', function () {
-        return Inertia::render('Checked-in/Index', [
-            'users' => User::all(), // PHP expects '=>' only within the array here
-        ]);
-    })->name('checked-in.index');
-
 
     Route::get('/get-notams', function () {
         $n8n_webhook_url = env('N8N_GET_NOTAMS');

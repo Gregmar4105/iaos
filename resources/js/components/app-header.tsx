@@ -2,6 +2,8 @@ import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Icon } from '@/components/icon';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { NavigationMenu,
         NavigationMenuContent,
@@ -14,14 +16,34 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { UserMenuContent } from '@/components/user-menu-content';
 import { useInitials } from '@/hooks/use-initials';
+import { WeatherResult } from '@/components/weather-result';
+import { extractWeatherSummary, formatWeatherStat, formatWeatherTimestamp, toWeatherRecord } from '@/lib/weather';
 import { cn } from '@/lib/utils';
 import { login } from '@/routes';
 import { type BreadcrumbItem, type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid, Menu, Search, CircleHelpIcon, CircleCheckIcon, CircleIcon } from 'lucide-react';
+import {
+    BookOpen,
+    Folder,
+    LayoutGrid,
+    Menu,
+    Search,
+    CircleHelpIcon,
+    CircleCheckIcon,
+    CircleIcon,
+    Loader2,
+    CloudSun,
+    ThermometerSun,
+    Droplets,
+    Wind,
+    Clock3,
+    Sparkles,
+} from 'lucide-react';
 import AppLogo from './app-logo';
 import AppLogoIcon from './app-logo-icon';
 import { useIsMobile } from "@/hooks/use-mobile"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { FormEvent, useEffect, useRef, useState } from 'react';
 
 const Book: NavItem[] = [
     {
@@ -56,12 +78,6 @@ const Manage: NavItem[] = [
     href: "/checked-in",
     description:
       "Manage checked-in by PMS",
-  },
-  {
-    title: "Boarding",
-    href: "/boarding",
-    description:
-      "Manage boarding by PMS",
   },
   {
     title: "Baggage",
@@ -148,6 +164,85 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
     const { auth } = page.props;
     const getInitials = useInitials();
     const isMobile = useIsMobile()
+    const [isWeatherDialogOpen, setWeatherDialogOpen] = useState(false);
+    const [isWeatherPanelOpen, setWeatherPanelOpen] = useState(false);
+    const [weatherQuery, setWeatherQuery] = useState('');
+    const [lastWeatherQuery, setLastWeatherQuery] = useState('');
+    const [weatherResult, setWeatherResult] = useState<Record<string, unknown> | null>(null);
+    const [weatherError, setWeatherError] = useState<string | null>(null);
+    const [isWeatherLoading, setWeatherLoading] = useState(false);
+    const weatherPanelRef = useRef<HTMLDivElement | null>(null);
+    const weatherButtonRef = useRef<HTMLButtonElement | null>(null);
+
+    useEffect(() => {
+        const handleClickAway = (event: MouseEvent) => {
+            if (!isWeatherPanelOpen) return;
+
+            const target = event.target as Node;
+            if (
+                weatherPanelRef.current &&
+                !weatherPanelRef.current.contains(target) &&
+                weatherButtonRef.current &&
+                !weatherButtonRef.current.contains(target)
+            ) {
+                setWeatherPanelOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickAway);
+        return () => document.removeEventListener('mousedown', handleClickAway);
+    }, [isWeatherPanelOpen]);
+
+    const dialogSummary = weatherResult
+        ? extractWeatherSummary(weatherResult, lastWeatherQuery || weatherQuery)
+        : null;
+
+    const handleWeatherSearch = async (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        const trimmedQuery = weatherQuery.trim();
+
+        if (!trimmedQuery) {
+            setWeatherError('Please enter a city name.');
+            return;
+        }
+
+        setWeatherLoading(true);
+        setWeatherError(null);
+
+        try {
+            const response = await fetch(`/api/weather?city=${encodeURIComponent(trimmedQuery)}`);
+            const payload = await response.json();
+
+            if (!response.ok || payload.error) {
+                throw new Error(payload.error ?? 'Unable to reach the weather service.');
+            }
+
+            const record = toWeatherRecord(payload.data);
+
+            if (!record) {
+                throw new Error('Weather service returned an empty payload.');
+            }
+
+            setWeatherResult(record);
+            setLastWeatherQuery(trimmedQuery);
+            setWeatherDialogOpen(true);
+            setWeatherPanelOpen(false);
+        } catch (error) {
+            setWeatherResult(null);
+            setWeatherError(error instanceof Error ? error.message : 'Unable to reach the weather service.');
+        } finally {
+            setWeatherLoading(false);
+        }
+    };
+
+    const handleWeatherDialogChange = (open: boolean) => {
+        setWeatherDialogOpen(open);
+
+        if (!open) {
+            setWeatherResult(null);
+            setLastWeatherQuery('');
+        }
+    };
     return (
         <>
             <div className="border-b border-sidebar-border/80">
@@ -317,9 +412,43 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
 
                     <div className="ml-auto flex items-center space-x-2">
                         <div className="relative flex items-center space-x-1">
-                            <Button variant="ghost" size="icon" className="group h-9 w-9 cursor-pointer">
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="group h-9 w-9 cursor-pointer"
+                                ref={weatherButtonRef}
+                                onClick={() => {
+                                    setWeatherPanelOpen((prev) => !prev);
+                                    setWeatherError(null);
+                                }}
+                                aria-label="Quick weather search"
+                            >
                                 <Search className="!size-5 opacity-80 group-hover:opacity-100" />
                             </Button>
+                            {isWeatherPanelOpen && (
+                                <div
+                                    ref={weatherPanelRef}
+                                    className="absolute right-0 top-12 z-50 w-80 rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-2xl"
+                                >
+                                    <p className="text-sm font-semibold text-slate-900">Quick weather lookup</p>
+                                    <p className="text-xs text-slate-500">Search a city via ATC weather feed.</p>
+                                    <form onSubmit={handleWeatherSearch} className="mt-3 space-y-3">
+                                        <Input
+                                            placeholder="e.g. Manila"
+                                            value={weatherQuery}
+                                            onChange={(event) => setWeatherQuery(event.target.value)}
+                                            autoFocus
+                                        />
+                                        <Button type="submit" className="w-full" disabled={isWeatherLoading}>
+                                            {isWeatherLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                            Fetch weather
+                                        </Button>
+                                    </form>
+                                    {weatherError && (
+                                        <p className="mt-2 text-xs text-rose-600">{weatherError}</p>
+                                    )}
+                                </div>
+                            )}
                             <div className="hidden lg:flex">
                                 {rightNavItems.map((item) => (
                                     <TooltipProvider key={item.title} delayDuration={0}>
@@ -398,6 +527,82 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                     </div>
                 </div>
             )}
+
+            <Dialog open={isWeatherDialogOpen} onOpenChange={handleWeatherDialogChange}>
+                <DialogContent className="sm:max-w-7xl">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2 text-lg">
+                            <CloudSun className="h-5 w-5 text-blue-500" />
+                            ATC weather intelligence
+                        </DialogTitle>
+                        <DialogDescription>
+                            Results are fetched live from the weather webhook and shown once ready.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    {weatherResult && dialogSummary ? (
+                        <div className="space-y-3">
+                            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                                <p className="text-xs uppercase tracking-wide text-slate-500">Live conditions</p>
+                                <div className="mt-1 flex flex-wrap items-center gap-2 text-lg font-semibold text-slate-900">
+                                    <Sparkles className="h-5 w-5 text-blue-500" />
+                                    {dialogSummary.city ?? lastWeatherQuery ?? 'Unknown city'}
+                                    {dialogSummary.condition && (
+                                        <Badge variant="secondary">{dialogSummary.condition}</Badge>
+                                    )}
+                                </div>
+                                <p className="text-xs text-slate-500">
+                                    {formatWeatherTimestamp(dialogSummary.updatedAt)}
+                                </p>
+                            </div>
+
+                            <div className="grid gap-2 sm:grid-cols-2">
+                                {[
+                                    {
+                                        label: 'Temperature',
+                                        value: formatWeatherStat(dialogSummary.temperature, '°'),
+                                        icon: ThermometerSun,
+                                    },
+                                    {
+                                        label: 'Humidity',
+                                        value: formatWeatherStat(dialogSummary.humidity, '%'),
+                                        icon: Droplets,
+                                    },
+                                    {
+                                        label: 'Wind',
+                                        value: formatWeatherStat(dialogSummary.wind, 'knots'),
+                                        icon: Wind,
+                                    },
+                                    {
+                                        label: 'Updated',
+                                        value: formatWeatherTimestamp(dialogSummary.updatedAt),
+                                        icon: Clock3,
+                                    },
+                                ].map(({ label, value, icon: Icon }) => (
+                                    <div
+                                        key={label}
+                                        className="rounded-lg border border-slate-100 p-3 text-sm"
+                                    >
+                                        <div className="flex items-center gap-1 text-xs uppercase tracking-wide text-slate-500">
+                                            <Icon className="h-3.5 w-3.5 text-slate-400" />
+                                            {label}
+                                        </div>
+                                        <p className="mt-1 text-base font-semibold text-slate-900">{value}</p>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="max-h-56 overflow-y-auto pr-1">
+                                <WeatherResult data={weatherResult} compact className="gap-3" />
+                            </div>
+                        </div>
+                    ) : (
+                        <p className="text-sm text-slate-600">
+                            Run a quick city search via the magnifying glass to pull the latest data.
+                        </p>
+                    )}
+                </DialogContent>
+            </Dialog>
         </>
     );
 }
